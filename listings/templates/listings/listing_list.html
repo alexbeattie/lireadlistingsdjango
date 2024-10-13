@@ -1,0 +1,41 @@
+{% block content %}
+    <h1>Real Estate Listings</h1>
+    {% for listing in listings %}
+        <div class="listing">
+            <h2>{{ listing.title }}</h2>
+
+            {% with main_photo=listing.main_photo %}
+                {% if main_photo %}
+                    <img src="{{ main_photo.image.url }}" alt="Main photo of {{ listing.title }}">
+                {% else %}
+                    <p>No main image available</p>
+                {% endif %}
+            {% endwith %}
+
+            <h2><a href="{% url 'listing_detail' listing.id %}">{{ listing.title }}</a></h2>
+            <p>Price: ${{ listing.price }}</p>
+            <p>{{ listing.bedrooms }} bed, {{ listing.bathrooms }} bath</p>
+            <p>{{ listing.city }}, {{ listing.state }}</p>
+        </div>
+    {% endfor %}
+
+    {% if listings.has_other_pages %}
+        <div class="pagination">
+            {% if listings.has_previous %}
+                <a href="?page={{ listings.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+
+            {% for i in listings.paginator.page_range %}
+                {% if listings.number == i %}
+                    <span class="current">{{ i }}</span>
+                {% else %}
+                    <a href="?page={{ i }}">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if listings.has_next %}
+                <a href="?page={{ listings.next_page_number }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

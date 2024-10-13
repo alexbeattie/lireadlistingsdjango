@@ -1,0 +1,30 @@
+{% block content %}
+   <h1>{{ listing.title }}</h1>
+
+    {% with main_photo=listing.main_photo %}
+        {% if main_photo %}
+            <img src="{{ main_photo.image.url }}" alt="Main photo of {{ listing.title }}">
+        {% else %}
+            <p>No main image available</p>
+        {% endif %}
+    {% endwith %}
+
+    <p>Price: ${{ listing.price }}</p>
+    <p>{{ listing.bedrooms }} bed, {{ listing.bathrooms }} bath</p>
+
+    <h2>All Photos</h2>
+    <div class="photo-gallery">
+        {% for photo in photos %}
+            <div class="photo-item">
+                <img src="{{ photo.image.url }}" alt="{{ photo.description }}">
+                {% if photo.description %}
+                    <p>{{ photo.description }}</p>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p>No photos available for this listing.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Rest of your listing details -->
+{% endblock %}
