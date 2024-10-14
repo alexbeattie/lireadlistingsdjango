@@ -1,30 +1,166 @@
-{% block content %}
-   <h1>{{ listing.title }}</h1>
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ listing.title }} - Real Estate Listing</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" type="text/css">
+    <style>
+        .listing-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        @media (min-width: 1024px) {
+            .listing-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .description-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+<div class="container mx-auto px-4 py-8">
+    <header class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">{{ listing.title }}</h1>
+        <p class="text-xl text-gray-600">{{ listing.island }} - {{ listing.view_type }}</p>
+    </header>
 
-    {% with main_photo=listing.main_photo %}
-        {% if main_photo %}
-            <img src="{{ main_photo.image.url }}" alt="Main photo of {{ listing.title }}">
-        {% else %}
-            <p>No main image available</p>
-        {% endif %}
-    {% endwith %}
-
-    <p>Price: ${{ listing.price }}</p>
-    <p>{{ listing.bedrooms }} bed, {{ listing.bathrooms }} bath</p>
-
-    <h2>All Photos</h2>
-    <div class="photo-gallery">
-        {% for photo in photos %}
-            <div class="photo-item">
-                <img src="{{ photo.image.url }}" alt="{{ photo.description }}">
-                {% if photo.description %}
-                    <p>{{ photo.description }}</p>
+    <div class="listing-grid mb-12">
+        <div class="space-y-4">
+            <!-- Main Image -->
+            <div class="rounded-lg overflow-hidden shadow-lg">
+                {% if listing.main_image %}
+                <img src="{{ listing.main_image.url }}" alt="Main photo of {{ listing.title }}"
+                     class="w-full h-auto object-cover">
+                {% else %}
+                <div class="w-full h-96 bg-gray-300 flex items-center justify-center">
+                    <p class="text-gray-500 italic">No main image available</p>
+                </div>
                 {% endif %}
             </div>
-        {% empty %}
-            <p>No photos available for this listing.</p>
-        {% endfor %}
+
+            <!-- Media Embed Container -->
+            <div id="media-container" class="rounded-lg overflow-hidden shadow-lg"></div>
+        </div>
+
+        <!-- Listing Details -->
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+            <p class="text-3xl font-semibold text-green-600 mb-4">Price: ${{ listing.price }}</p>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-gray-600">Bedrooms</p>
+                    <p class="text-xl font-semibold">{{ listing.bedrooms }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Bathrooms</p>
+                    <p class="text-xl font-semibold">{{ listing.bathrooms }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Property Type</p>
+                    <p class="text-xl font-semibold">{{ listing.property_type }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">View Type</p>
+                    <p class="text-xl font-semibold">{{ listing.view_type }}</p>
+                </div>
+                {% if listing.floor_plan_one %}
+                <div>
+                    <p class="text-gray-600">Floor Plan</p>
+                    <p class="text-xl font-semibold"><a href="{{ listing.floor_plan_one.url }}" target="_blank">Floor Plan</a></p>
+                </div>
+                {% endif %}
+                {% if listing.floor_plan_two %}
+                <div>
+                    <p class="text-gray-600">Map</p>
+                    <p class="text-xl font-semibold"><a href="{{ listing.floor_plan_two.url }}" target="_blank">Link</a></p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="description-content" id="description-content">
+                <p class="text-gray-700">{{ listing.description|linebreaksbr }}</p>
+            </div>
+            <button id="description-toggle" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Read More</button>
+        </div>
     </div>
 
-    <!-- Rest of your listing details -->
-{% endblock %}
+    <!-- Photo Gallery -->
+    <h2 class="text-3xl font-semibold mb-6 text-gray-800">Photo Gallery</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for photo in photos %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+            <img src="{{ photo.image.url }}" alt="{{ photo.description }}" class="w-full h-64 object-cover">
+            {% if photo.description %}
+            <p class="p-4 text-sm text-gray-600">{{ photo.description }}</p>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="col-span-full text-gray-500 italic text-center py-12">No additional photos available for this listing.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function embedMedia(url) {
+    const container = document.getElementById('media-container');
+    let embed;
+    if (url.includes('youtube.com')) {
+        const videoId = url.split('v=')[1];
+        embed = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    } else if (url.includes('vimeo.com')) {
+        const videoId = url.split('.com/')[1];
+        embed = `<iframe src="https://player.vimeo.com/video/${videoId}" width="100%" height="315" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    } else if (url.includes('my.matterport.com')) {
+        const tourId = url.split('m=')[1];
+        embed = `<iframe width="100%" height="315" src="https://my.matterport.com/show/?m=${tourId}" frameborder="0" allowfullscreen></iframe>`;
+    }
+    if (embed) {
+        container.innerHTML = embed;
+    }
+}
+
+const mediaUrl = "{{ listing.video_or_3d_tour }}";
+if (mediaUrl) {
+    embedMedia(mediaUrl);
+}
+
+// Description toggle functionality
+const descriptionToggle = document.getElementById('description-toggle');
+const descriptionContent = document.getElementById('description-content');
+
+function truncateText(element, sentenceCount) {
+    const fullText = element.innerHTML;
+    const sentences = fullText.match(/[^\.!\?]+[\.!\?]+/g);
+    if (sentences && sentences.length > sentenceCount) {
+        element.dataset.fullText = fullText;
+        element.innerHTML = sentences.slice(0, sentenceCount).join(' ');
+        return true;
+    }
+    return false;
+}
+
+const isTruncated = truncateText(descriptionContent, 3);
+
+if (isTruncated) {
+    descriptionToggle.addEventListener('click', function() {
+        if (descriptionContent.dataset.fullText) {
+            descriptionContent.innerHTML = descriptionContent.dataset.fullText;
+            descriptionContent.dataset.fullText = '';
+            this.textContent = 'Read Less';
+        } else {
+            const wasTruncated = truncateText(descriptionContent, 3);
+            if (wasTruncated) {
+                this.textContent = 'Read More';
+            }
+        }
+    });
+} else {
+    descriptionToggle.style.display = 'none';
+}
+</script>
+</body>
+</html>
