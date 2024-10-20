@@ -1,11 +1,14 @@
-<!DOCTYPE html>
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ listing.title }} - Real Estate Listing</title>
     <link rel="stylesheet" href="{% static 'css/output.css' %}" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
     <style>
         .listing-grid {
             display: grid;
@@ -27,10 +30,13 @@
 <div class="container mx-auto px-4 py-8">
     <header class="mb-8">
         <h1 class="text-4xl font-bold text-gray-800">{{ listing.title }}</h1>
+
         <p class="text-xl text-gray-600">{{ listing.island }} - {{ listing.view_type }}</p>
     </header>
 
     <div class="listing-grid mb-12">
+                <div id="map"></div>
+
         <div class="space-y-4">
             <!-- Main Image -->
             <div class="rounded-lg overflow-hidden shadow-lg">
@@ -162,5 +168,14 @@ if (isTruncated) {
     descriptionToggle.style.display = 'none';
 }
 </script>
+  <script>
+        var map = L.map('map').setView([{{ listing.location.y }}, {{ listing.location.x }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([{{ listing.location.y }}, {{ listing.location.x }}]).addTo(map)
+            .bindPopup('{{ listing.title }}')
+            .openPopup();
+    </script>
 </body>
 </html>
